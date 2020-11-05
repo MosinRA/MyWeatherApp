@@ -8,6 +8,9 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -15,6 +18,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 
 import com.google.gson.Gson;
@@ -31,14 +35,15 @@ import java.util.Objects;
 import javax.net.ssl.HttpsURLConnection;
 
 public class Fragment_main extends Fragment {
-
     private static final String WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?q=";
     private static final String API_KEY = "762ee61f52313fbd10a4eb54ae4d4de2";
-    private String cityChoice = "Сургут";
     private TextView showTempView, showWindSpeed, showPressure, showHumidity, cityName;
     private ImageView icoWeather;
+    private SearchView searchText;
     SharedPreferences sharedPreferences;
+    private String cityChoice;
     private boolean wind, pressure, humidity, errorStatus;
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -51,9 +56,36 @@ public class Fragment_main extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         setHasOptionsMenu(true);
         findView(view);
-        sendErInternetAlert();
         initSettingSwitch();
+        createWeatherJsonParam();
+        sendErInternetAlert();
     }
+
+//    @Override
+//    public void onCreateOptionsMenu(@NonNull final Menu menu, @NonNull MenuInflater inflater) {
+//        super.onCreateOptionsMenu(menu, inflater);
+//        MenuItem search = menu.findItem(R.id.action_search);
+//        searchText = (SearchView) search.getActionView(); // строка поиска
+//        searchText.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//                cityChoice = query;
+//                sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+//                SharedPreferences.Editor editor = sharedPreferences.edit();
+//                editor.putString("cityName", cityChoice);
+//                editor.apply();
+//                cityName.setText(cityChoice);
+//                createWeatherJsonParam();
+//                searchText.onActionViewCollapsed();
+//                return true;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String newText) {
+//                return true;
+//            }
+//        });
+//    }
 
     public void findView(View view) {
         showTempView = view.findViewById(R.id.showTempViewFragmentShowCityInfo);
@@ -63,10 +95,9 @@ public class Fragment_main extends Fragment {
         icoWeather = view.findViewById(R.id.weatherIcoView);
         cityName = view.findViewById(R.id.cityNameView);
     }
-
     private void createWeatherJsonParam() {
         try {
-            final URL uri = new URL("https://api.openweathermap.org/data/2.5/weather?q=" + cityChoice + "&units=metric&appid=" + API_KEY);
+            final URL uri = new URL( WEATHER_URL + cityChoice + "&units=metric&appid=" + API_KEY);
             final Handler handler = new Handler(Objects.requireNonNull(Looper.myLooper())); // Запоминаем основной поток
             new Thread(new Runnable() {
                 public void run() {
@@ -86,8 +117,7 @@ public class Fragment_main extends Fragment {
                             public void run() {
                                 displayWeather(weatherRequest);
                             }
-                        });
-                        errorStatus = false;
+                        }); errorStatus = false;
                     } catch (Exception e) {
                         Log.e("D", "Fail connection", e);
                         e.printStackTrace();
@@ -128,7 +158,7 @@ public class Fragment_main extends Fragment {
 
     private void displayWeather(WeatherRequest weatherRequest) {
         String temperatureValue, pressureText, humidityStr, windSpeedStr;
-        temperatureValue = String.format(Locale.getDefault(), "%.0f", weatherRequest.getMain().getTemp());
+        temperatureValue = String.format(Locale.getDefault(), "%.0f",  weatherRequest.getMain().getTemp());
         pressureText = String.format(Locale.getDefault(), "%d", weatherRequest.getMain().getPressure());
         humidityStr = String.format(Locale.getDefault(), "%d", weatherRequest.getMain().getHumidity());
         windSpeedStr = String.format(Locale.getDefault(), "%.0f", weatherRequest.getWind().getSpeed());
@@ -172,7 +202,6 @@ public class Fragment_main extends Fragment {
             icoWeather.setImageResource(R.drawable.mist);
         }
     }
-
     public void initSettingSwitch() {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         wind = sharedPreferences.getBoolean("Wind", false);
