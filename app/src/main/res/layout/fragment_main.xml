@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <ImageView
+        android:id="@+id/weatherIcoView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="50dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.157"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/cityNameView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:text=""
+        style="@style/TextStyle"
+        app:layout_constraintStart_toEndOf="@+id/weatherIcoView"
+        app:layout_constraintTop_toTopOf="@+id/weatherIcoView" />
+
+    <TextView
+        android:id="@+id/showTempViewFragmentShowCityInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        style="@style/TextStyle"
+        app:layout_constraintStart_toStartOf="@+id/cityNameView"
+        app:layout_constraintTop_toBottomOf="@+id/cityNameView" />
+
+    <TextView
+        android:id="@+id/windSpeedView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text=""
+        style="@style/TextStyle"
+        app:layout_constraintStart_toStartOf="@+id/weatherIcoView"
+        app:layout_constraintTop_toBottomOf="@+id/weatherIcoView" />
+
+    <TextView
+        android:id="@+id/pressureView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text=""
+        style="@style/TextStyle"
+        app:layout_constraintStart_toStartOf="@+id/windSpeedView"
+        app:layout_constraintTop_toBottomOf="@+id/windSpeedView" />
+
+    <TextView
+        android:id="@+id/humidityView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text=""
+        style="@style/TextStyle"
+        app:layout_constraintStart_toStartOf="@+id/pressureView"
+        app:layout_constraintTop_toBottomOf="@+id/pressureView" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

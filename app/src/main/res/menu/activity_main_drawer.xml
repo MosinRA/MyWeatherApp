@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_search_home"
+            android:icon="@drawable/ic_launcher_home"
+            android:title="@string/search" />
+        <item
+            android:id="@+id/nav_history"
+            android:icon="@drawable/ic_launcher_history"
+            android:title="@string/history_search" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_launcher_setting"
+            android:title="@string/setting" />
+    </group>
+
+    <item android:title="@string/shear_about_us">
+        <menu>
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_launcher_shear"
+                android:title="@string/shear_about_us" />
+        </menu>
+    </item>
+
+</menu>
