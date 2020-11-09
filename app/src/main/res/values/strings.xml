@@ -14,5 +14,13 @@
     <string name="navigation_drawer_close">Навигационная панель закрыта</string>
     <string name="exclamation">Важное сообщение!</string>
     <string name="msg_to_er_internet">Отсутствует соединение с интернетом</string>
+    <string name="msg_to_er_url">Возможно выбранный город введен не корректно </string>
     <string name="ok_button" translatable="false">Окей</string>
+
+    <string-array name="city_names">
+        <item>Москва</item>
+        <item>Сургут</item>
+        <item>Екатеринбург</item>
+        <item>Новый Уренгой</item>
+    </string-array>
 </resources>

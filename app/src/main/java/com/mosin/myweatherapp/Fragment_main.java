@@ -2,15 +2,13 @@ package com.mosin.myweatherapp;
 
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -18,17 +16,20 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 
 import com.google.gson.Gson;
 import com.mosin.myweatherapp.model.WeatherRequest;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -37,12 +38,11 @@ import javax.net.ssl.HttpsURLConnection;
 public class Fragment_main extends Fragment {
     private static final String WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?q=";
     private static final String API_KEY = "762ee61f52313fbd10a4eb54ae4d4de2";
-    private TextView showTempView, showWindSpeed, showPressure, showHumidity, cityName;
+    private TextView showTempView, showWindSpeed, showPressure, showHumidity, cityName, dateNow;
     private ImageView icoWeather;
-    private SearchView searchText;
     SharedPreferences sharedPreferences;
     private String cityChoice;
-    private boolean wind, pressure, humidity, errorStatus;
+    private boolean wind, pressure, humidity, errorStatusInternetNotFound, errorStatusUrlNotFound;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -58,34 +58,9 @@ public class Fragment_main extends Fragment {
         findView(view);
         initSettingSwitch();
         createWeatherJsonParam();
-        sendErInternetAlert();
+        sendAlert();
+        dateInit();
     }
-
-//    @Override
-//    public void onCreateOptionsMenu(@NonNull final Menu menu, @NonNull MenuInflater inflater) {
-//        super.onCreateOptionsMenu(menu, inflater);
-//        MenuItem search = menu.findItem(R.id.action_search);
-//        searchText = (SearchView) search.getActionView(); // строка поиска
-//        searchText.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String query) {
-//                cityChoice = query;
-//                sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-//                SharedPreferences.Editor editor = sharedPreferences.edit();
-//                editor.putString("cityName", cityChoice);
-//                editor.apply();
-//                cityName.setText(cityChoice);
-//                createWeatherJsonParam();
-//                searchText.onActionViewCollapsed();
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String newText) {
-//                return true;
-//            }
-//        });
-//    }
 
     public void findView(View view) {
         showTempView = view.findViewById(R.id.showTempViewFragmentShowCityInfo);
@@ -94,10 +69,20 @@ public class Fragment_main extends Fragment {
         showHumidity = view.findViewById(R.id.humidityView);
         icoWeather = view.findViewById(R.id.weatherIcoView);
         cityName = view.findViewById(R.id.cityNameView);
+        dateNow = view.findViewById(R.id.date_view);
     }
-    private void createWeatherJsonParam() {
+
+    public void initSettingSwitch() {
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        wind = sharedPreferences.getBoolean("Wind", false);
+        pressure = sharedPreferences.getBoolean("Pressure", false);
+        humidity = sharedPreferences.getBoolean("Humidity", false);
+        cityChoice = sharedPreferences.getString("cityName", cityChoice);
+        cityName.setText(cityChoice);
+    }
+    public void createWeatherJsonParam() {
         try {
-            final URL uri = new URL( WEATHER_URL + cityChoice + "&units=metric&appid=" + API_KEY);
+            final URL uri = new URL(WEATHER_URL + cityChoice + "&units=metric&appid=" + API_KEY);
             final Handler handler = new Handler(Objects.requireNonNull(Looper.myLooper())); // Запоминаем основной поток
             new Thread(new Runnable() {
                 public void run() {
@@ -117,18 +102,27 @@ public class Fragment_main extends Fragment {
                             public void run() {
                                 displayWeather(weatherRequest);
                             }
-                        }); errorStatus = false;
+                        });
+                        errorStatusInternetNotFound = false;
+                        errorStatusUrlNotFound = false;
+
+                    }catch (FileNotFoundException e){
+                        Log.e("D", "Fail URL", e);
+                        e.printStackTrace();
+                        errorStatusUrlNotFound = true;
+
                     } catch (Exception e) {
                         Log.e("D", "Fail connection", e);
                         e.printStackTrace();
-                        errorStatus = true;
+                        errorStatusInternetNotFound = true;
+
                     } finally {
                         if (null != urlConnection) {
                             urlConnection.disconnect();
                         }
                     }
                 }
-            }).start();
+            } ).start();
         } catch (MalformedURLException e) {
             Log.e("D", "Fail URI", e);
             e.printStackTrace();
@@ -142,7 +136,7 @@ public class Fragment_main extends Fragment {
         while (true) {
             try {
                 tempVariable = reader.readLine();
-                if (tempVariable == null) break;
+                if (tempVariable == null)  break;
                 rawData.append(tempVariable).append("\n");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -158,8 +152,8 @@ public class Fragment_main extends Fragment {
 
     private void displayWeather(WeatherRequest weatherRequest) {
         String temperatureValue, pressureText, humidityStr, windSpeedStr;
-        temperatureValue = String.format(Locale.getDefault(), "%.0f",  weatherRequest.getMain().getTemp());
-        pressureText = String.format(Locale.getDefault(), "%d", weatherRequest.getMain().getPressure());
+        temperatureValue = String.format(Locale.getDefault(), "%.0f", weatherRequest.getMain().getTemp());
+        pressureText = String.format(Locale.getDefault(), "%.0f", weatherRequest.getMain().getPressure());
         humidityStr = String.format(Locale.getDefault(), "%d", weatherRequest.getMain().getHumidity());
         windSpeedStr = String.format(Locale.getDefault(), "%.0f", weatherRequest.getWind().getSpeed());
 
@@ -202,24 +196,38 @@ public class Fragment_main extends Fragment {
             icoWeather.setImageResource(R.drawable.mist);
         }
     }
-    public void initSettingSwitch() {
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        wind = sharedPreferences.getBoolean("Wind", false);
-        pressure = sharedPreferences.getBoolean("Pressure", false);
-        humidity = sharedPreferences.getBoolean("Humidity", false);
-        cityChoice = sharedPreferences.getString("cityName", "cityNameSearch");
-        cityName.setText(cityChoice);
-    }
 
     private void sendErInternetAlert() {
-        if (errorStatus) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(R.string.exclamation)
-                    .setMessage(R.string.msg_to_er_internet)
-                    .setIcon(R.mipmap.ic_launcher_round)
-                    .setPositiveButton(R.string.ok_button, null);
-            AlertDialog alert = builder.create();
-            alert.show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(R.string.exclamation)
+                .setMessage(R.string.msg_to_er_internet)
+                .setIcon(R.mipmap.ic_launcher_round)
+                .setPositiveButton(R.string.ok_button, null);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void sendErUrlAlert() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(R.string.exclamation)
+                .setMessage(R.string.msg_to_er_url)
+                .setIcon(R.mipmap.ic_launcher_round)
+                .setPositiveButton(R.string.ok_button, null);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+    private void sendAlert() {
+        if (errorStatusUrlNotFound) {
+            sendErUrlAlert();
+        } else if (errorStatusInternetNotFound) {
+            sendErInternetAlert();
         }
+    }
+
+    private void dateInit() {
+        Date currentDate = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yy", Locale.getDefault());
+        String dateText = dateFormat.format(currentDate);
+        dateNow.setText(dateText);
     }
 }

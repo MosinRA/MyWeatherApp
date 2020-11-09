@@ -5,7 +5,7 @@ public class Main {
     private float feels_like;
     private float temp_min;
     private float temp_max;
-    private int pressure;
+    private float pressure;
     private int humidity;
 
     public float getTemp() {
@@ -40,7 +40,7 @@ public class Main {
         this.temp_max = temp_max;
     }
 
-    public int getPressure() {
+    public float getPressure() {
         return pressure;
     }
 

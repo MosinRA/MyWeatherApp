@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
@@ -26,13 +27,25 @@
         app:layout_constraintTop_toTopOf="@+id/weatherIcoView" />
 
     <TextView
-        android:id="@+id/showTempViewFragmentShowCityInfo"
+        android:id="@+id/date_view"
+        style="@style/TextStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="5dp"
         android:text=""
-        style="@style/TextStyle"
-        app:layout_constraintStart_toStartOf="@+id/cityNameView"
+        app:layout_constraintStart_toEndOf="@+id/weatherIcoView"
         app:layout_constraintTop_toBottomOf="@+id/cityNameView" />
+
+    <TextView
+        android:id="@+id/showTempViewFragmentShowCityInfo"
+        style="@style/TextStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text=""
+        app:layout_constraintStart_toStartOf="@+id/date_view"
+        app:layout_constraintTop_toBottomOf="@+id/date_view" />
 
     <TextView
         android:id="@+id/windSpeedView"
