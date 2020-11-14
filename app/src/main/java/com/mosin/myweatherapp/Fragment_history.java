@@ -54,7 +54,7 @@ public class Fragment_history extends Fragment {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString("cityName", cityChoice);
                 editor.apply();
-                getActivity().getSupportFragmentManager()
+                requireActivity().getSupportFragmentManager()
                         .beginTransaction()
                         .replace(R.id.fragmentContainer, new Fragment_main())
                         .commit();
