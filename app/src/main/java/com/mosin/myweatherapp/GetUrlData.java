@@ -20,31 +20,42 @@ import java.util.Objects;
 import javax.net.ssl.HttpsURLConnection;
 
 public class GetUrlData {
-
+    private final String WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?q=";
+    private final String API_KEY = "762ee61f52313fbd10a4eb54ae4d4de2";
     private String result;
 
-    String getData(URL uri) {
-        HttpsURLConnection urlConnection = null;
-        try {
-            urlConnection = (HttpsURLConnection) uri.openConnection();
-            urlConnection.setRequestMethod("GET"); // установка метода получения данных -GET
-            urlConnection.setReadTimeout(10000); // установка таймаута - 10 000 миллисекунд
-            BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream())); // читаем  данные в поток
-            result = getLines(in);
+    String getData() throws MalformedURLException {
+        final URL uri = new URL("https://api.openweathermap.org/data/2.5/weather?q=Surgut&units=metric&appid=762ee61f52313fbd10a4eb54ae4d4de2");
 
-        } catch (FileNotFoundException e) {
-            Log.e("D", "Fail URL", e);
-            e.printStackTrace();
-        } catch (Exception e) {
-            Log.e("D", "Fail connection", e);
-            e.printStackTrace();
-        } finally {
-            if (null != urlConnection) {
-                urlConnection.disconnect();
-            }
-        }
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+                HttpsURLConnection urlConnection = null;
+                try {
+                    urlConnection = (HttpsURLConnection) uri.openConnection();
+                    urlConnection.setRequestMethod("GET");
+                    urlConnection.setReadTimeout(10000);
+                    BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream())); // читаем  данные
+                    String result2 = getLines(in);
+                    result = result2;
+
+
+                } catch (FileNotFoundException e) {
+                    Log.e("D", "Fail URL", e);
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    Log.e("D", "Fail connection", e);
+                    e.printStackTrace();
+                } finally {
+                    if (null != urlConnection) {
+                        urlConnection.disconnect();
+                    }
+                }
+//            }
+//        }).start();
         return result;
     }
+
     private String getLines(BufferedReader reader) {
         StringBuilder rawData = new StringBuilder(1024);
         String tempVariable;

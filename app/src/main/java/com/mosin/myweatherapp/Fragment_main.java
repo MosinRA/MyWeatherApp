@@ -36,6 +36,7 @@ import java.util.Objects;
 import javax.net.ssl.HttpsURLConnection;
 
 public class Fragment_main extends Fragment {
+    final GetWeatherData getWeatherData = new GetWeatherData();
     private TextView showTempView, showWindSpeed, showPressure, showHumidity, cityName, dateNow;
     private ImageView icoWeather;
     SharedPreferences sharedPreferences;
@@ -52,13 +53,10 @@ public class Fragment_main extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setHasOptionsMenu(true);
+        getWeatherData.getData();
         findView(view);
         initSettingSwitch();
-        try {
-            displayWeather();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        displayWeather();
         dateInit();
     }
 
@@ -81,35 +79,29 @@ public class Fragment_main extends Fragment {
         cityName.setText(cityChoice);
     }
 
-    private void displayWeather() throws MalformedURLException {
-        GetWeatherData getWeatherData = new GetWeatherData();
+    private void displayWeather(){
+
         getWeatherData.getData();
 
-
-        temperatureValue = getWeatherData.getTemperatureValue();
-        pressureText = getWeatherData.getPressureText();
-        humidityStr = getWeatherData.getHumidityStr();
-        windSpeedStr = getWeatherData.getWindSpeedStr();
-
-        showTempView.setText(String.format("%s °", temperatureValue));
+        showTempView.setText(String.format("%s °", getWeatherData.getTemperatureValue()));
         if (wind) {
-            showWindSpeed.setText(String.format("%s %s м/с", getResources().getString(R.string.wind_speed), windSpeedStr));
+            showWindSpeed.setText(String.format("%s %s м/с", getResources().getString(R.string.wind_speed), getWeatherData.getWindSpeedStr()));
         } else {
             showWindSpeed.setVisibility(View.GONE);
         }
         if (pressure) {
-            showPressure.setText(String.format("%s %s мб", getResources().getString(R.string.pressure), pressureText));
+            showPressure.setText(String.format("%s %s мб", getResources().getString(R.string.pressure), getWeatherData.getPressureText()));
         } else {
             showPressure.setVisibility(View.GONE);
         }
         if (humidity) {
-            showHumidity.setText(String.format("%s %s %%", getResources().getString(R.string.humidity), humidityStr));
+            showHumidity.setText(String.format("%s %s %%", getResources().getString(R.string.humidity), getWeatherData.getHumidityStr()));
         } else {
             showHumidity.setVisibility(View.GONE);
         }
 //        setIcoViewImage();
     }
-
+//
 //    private void setIcoViewImage() {
 //        String icoView = getWeatherData.getIcoView();
 //        if (icoView.equals("01d")) {
