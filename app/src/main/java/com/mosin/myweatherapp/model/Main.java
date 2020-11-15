@@ -41,7 +41,7 @@ public class Main {
     }
 
     public float getPressure() {
-        return pressure;
+        return (float) (pressure * 0.750064);
     }
 
     public void setPressure(int pressure) {

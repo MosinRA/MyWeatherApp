@@ -32,12 +32,12 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = initToolbar();
         initDrawer(toolbar);
 
-//        if (savedInstanceState == null) {
-//            getSupportFragmentManager()
-//                    .beginTransaction()
-//                    .replace(R.id.fragmentContainer, new Fragment_main())
-//                    .commit();
-//        }
+        if (savedInstanceState == null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragmentContainer, new Fragment_main())
+                    .commit();
+        }
     }
     private Toolbar initToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
