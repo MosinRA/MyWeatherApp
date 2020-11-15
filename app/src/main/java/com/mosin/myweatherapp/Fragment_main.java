@@ -48,7 +48,6 @@ public class Fragment_main extends Fragment {
     private final String WEATHER_URL = "https://api.openweathermap.org/";
     private final String API_KEY = "762ee61f52313fbd10a4eb54ae4d4de2";
     private final String MERRIC = "metric";
-    private final GetUrlData getUrlData = new GetUrlData();
     private TextView showTempView, showWindSpeed, showPressure, showHumidity, cityName, dateNow;
     private ImageView icoWeather, pic;
     SharedPreferences sharedPreferences;
@@ -69,7 +68,6 @@ public class Fragment_main extends Fragment {
         initRetorfit();
         requestRetrofit(cityChoice, MERRIC, API_KEY);
         setPic();
-        sendErInternetAlert();
         dateInit();
     }
 
@@ -182,18 +180,6 @@ public class Fragment_main extends Fragment {
         DateFormat dateFormat = new SimpleDateFormat("dd.MM.yy", Locale.getDefault());
         String dateText = dateFormat.format(currentDate);
         dateNow.setText(dateText);
-    }
-
-    private void sendErInternetAlert() {
-        if (getUrlData.isErrConnection()) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(R.string.exclamation)
-                    .setMessage(R.string.msg_to_er_internet)
-                    .setIcon(R.mipmap.ic_launcher_round)
-                    .setPositiveButton(R.string.ok_button, null);
-            AlertDialog alert = builder.create();
-            alert.show();
-        }
     }
 
     private void setPic() {
