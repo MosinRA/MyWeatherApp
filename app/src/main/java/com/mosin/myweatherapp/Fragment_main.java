@@ -19,7 +19,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.gson.Gson;
+import com.mosin.myweatherapp.interfaces.IOpenWeatherMap;
 import com.mosin.myweatherapp.model.WeatherRequest;
+import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -35,17 +37,23 @@ import java.util.Objects;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class Fragment_main extends Fragment {
-    private final String WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?q=";
+    private IOpenWeatherMap openWeather;
+    private final String WEATHER_URL = "https://api.openweathermap.org/";
     private final String API_KEY = "762ee61f52313fbd10a4eb54ae4d4de2";
-    private final String MERRIC = "&units=metric&appid=";
+    private final String MERRIC = "metric";
     private final GetUrlData getUrlData = new GetUrlData();
     private TextView showTempView, showWindSpeed, showPressure, showHumidity, cityName, dateNow;
-    private ImageView icoWeather;
+    private ImageView icoWeather, pic;
     SharedPreferences sharedPreferences;
-    private String cityChoice, temperatureValue, pressureText, humidityStr, windSpeedStr, icoView;
+    private String cityChoice, icoView;
     private boolean wind, pressure, humidity;
-
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -58,7 +66,9 @@ public class Fragment_main extends Fragment {
         setHasOptionsMenu(true);
         findView(view);
         initSettingSwitch();
-        getData();
+        initRetorfit();
+        requestRetrofit(cityChoice, MERRIC, API_KEY);
+        setPic();
         sendErInternetAlert();
         dateInit();
     }
@@ -71,6 +81,7 @@ public class Fragment_main extends Fragment {
         icoWeather = view.findViewById(R.id.weatherIcoView);
         cityName = view.findViewById(R.id.cityNameView);
         dateNow = view.findViewById(R.id.date_view);
+        pic = view.findViewById(R.id.picas_pic);
     }
 
     public void initSettingSwitch() {
@@ -82,53 +93,68 @@ public class Fragment_main extends Fragment {
         cityName.setText(cityChoice);
     }
 
-    public void getData() {
-        final android.os.Handler handler = new Handler(Objects.requireNonNull(Looper.myLooper()));
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    final String result = getUrlData.getData(new URL(WEATHER_URL + cityChoice + MERRIC + API_KEY));
-                    if (result != null){
-                        getUrlData.setErrConnection(false);
-                    Gson gson = new Gson();
-                    final WeatherRequest weatherRequest = gson.fromJson(result, WeatherRequest.class);
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            displayWeather(weatherRequest);
-                        }
-                    });}
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-            }}).start();
+    private void initRetorfit() {
+        Retrofit retrofit;
+        retrofit = new Retrofit.Builder()
+                .baseUrl(WEATHER_URL) //Базовая часть адреса
+                .addConverterFactory(GsonConverterFactory.create()) //Конвертер, необходимый для преобразования JSON'а в объекты
+                .build();
+        openWeather = retrofit.create(IOpenWeatherMap.class); //Создаем объект, при помощи которого будем выполнять запросы
     }
 
-    private void displayWeather(WeatherRequest weatherRequest){
-        temperatureValue = String.format(Locale.getDefault(), "%.0f", weatherRequest.getMain().getTemp());
-        pressureText = String.format(Locale.getDefault(), "%.0f", weatherRequest.getMain().getPressure());
-        humidityStr = String.format(Locale.getDefault(), "%d", weatherRequest.getMain().getHumidity());
-        windSpeedStr = String.format(Locale.getDefault(), "%.0f", weatherRequest.getWind().getSpeed());
-        icoView = weatherRequest.getWeather()[0].getIcon();
+    private void requestRetrofit(String city, String metric, String keyApi) {
+        openWeather.loadWeather(city, metric, keyApi)
+                .enqueue(new Callback<WeatherRequest>() {
+                    @Override
+                    public void onResponse(Call<WeatherRequest> call, Response<WeatherRequest> response) {
+                        if (response.body() != null) {
+                            String temperatureValue = String.format(Locale.getDefault(), "%.1f °", response.body().getMain().getTemp());
+                            String windSpeedStr = String.format(Locale.getDefault(), "%.0f", response.body().getWind().getSpeed());
+                            String pressureText = String.format(Locale.getDefault(), "%.0f", response.body().getMain().getPressure());
+                            String humidityStr = String.format(Locale.getDefault(), "%d", response.body().getMain().getHumidity());
+                            icoView = response.body().getWeather()[0].getIcon();
 
-        showTempView.setText(String.format("%s °", temperatureValue));
-        if (wind) {
-            showWindSpeed.setText(String.format("%s %s м/с", getResources().getString(R.string.wind_speed), windSpeedStr));
-        } else {
-            showWindSpeed.setVisibility(View.GONE);
-        }
-        if (pressure) {
-            showPressure.setText(String.format("%s %s мм рт.ст.", getResources().getString(R.string.pressure), pressureText));
-        } else {
-            showPressure.setVisibility(View.GONE);
-        }
-        if (humidity) {
-            showHumidity.setText(String.format("%s %s %%", getResources().getString(R.string.humidity), humidityStr));
-        } else {
-            showHumidity.setVisibility(View.GONE);
-        }
-        setIcoViewImage();
+                            showTempView.setText(temperatureValue);
+                            if (wind) {
+                                showWindSpeed.setText(String.format("%s %s м/с", getResources().getString(R.string.wind_speed), windSpeedStr));
+                            } else {
+                                showWindSpeed.setVisibility(View.GONE);
+                            }
+                            if (pressure) {
+                                showPressure.setText(String.format("%s %s мм рт.ст.", getResources().getString(R.string.pressure), pressureText));
+                            } else {
+                                showPressure.setVisibility(View.GONE);
+                            }
+                            if (humidity) {
+                                showHumidity.setText(String.format("%s %s %%", getResources().getString(R.string.humidity), humidityStr));
+                            } else {
+                                showHumidity.setVisibility(View.GONE);
+                            }
+                            setIcoViewImage();
+                        } else if (response.code() == 404) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                            builder.setTitle(R.string.exclamation)
+                                    .setMessage(R.string.msg_to_er_url)
+                                    .setIcon(R.mipmap.ic_launcher_round)
+                                    .setPositiveButton(R.string.ok_button, null);
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<WeatherRequest> call, Throwable t) {
+                        cityName.setText("");
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle(R.string.exclamation)
+                                .setMessage(R.string.msg_to_er_internet)
+                                .setIcon(R.mipmap.ic_launcher_round)
+                                .setPositiveButton(R.string.ok_button, null);
+                        AlertDialog alert = builder.create();
+                        alert.show();
+
+                    }
+                });
     }
 
     private void setIcoViewImage() {
@@ -157,6 +183,7 @@ public class Fragment_main extends Fragment {
         String dateText = dateFormat.format(currentDate);
         dateNow.setText(dateText);
     }
+
     private void sendErInternetAlert() {
         if (getUrlData.isErrConnection()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -167,5 +194,11 @@ public class Fragment_main extends Fragment {
             AlertDialog alert = builder.create();
             alert.show();
         }
+    }
+
+    private void setPic() {
+        Picasso.get()
+                .load("https://www.dorogavrim.ru/img/flagi/goroda/flag_" + cityChoice.toLowerCase() + ".jpg")
+                .into(pic);
     }
 }
